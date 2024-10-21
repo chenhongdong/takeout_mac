@@ -19,3 +19,5 @@ mybatis-plus:
     db-config:
       # 主键生成策略
       id-type: assign_id
+assets:
+  path: /Users/chenhongdong/Desktop/Uploads/

@@ -103,7 +103,7 @@ public class EmployeeController {
     @GetMapping("/page")
     public R<Page> page(int page, int pageSize, String name) {
         // 创建分页构造器
-        Page pageInfo = new Page(page, pageSize);
+        Page<Employee> pageInfo = new Page<>(page, pageSize);
 
         // 创建条件构造器
         LambdaQueryWrapper<Employee> wrapper = new LambdaQueryWrapper<>();
@@ -122,13 +122,18 @@ public class EmployeeController {
      */
     @PutMapping
     public R<String> update(HttpServletRequest request, @RequestBody Employee employee) {
-        employee.setUpdateTime(LocalDateTime.now());
-        Long empId = (Long) request.getSession().getAttribute("employee");
-        employee.setUpdateUser(empId);
         // 更新数据库操作
         employeeService.updateById(employee);
-
         return R.success("员工信息修改成功");
+    }
+
+    @GetMapping("/{id}")
+    public R<Employee> getById(@PathVariable Long id) {
+        Employee emp = employeeService.getById(id);
+        if (emp != null) {
+            return R.success(emp);
+        }
+        return R.error("员工不存在");
     }
 }
 

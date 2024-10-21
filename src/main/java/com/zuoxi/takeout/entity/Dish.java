@@ -5,19 +5,22 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-public class Employee implements Serializable {
+public class Dish implements Serializable {
     private static final long serialVersionUid = 1L;
     private Long id;
     private String name;
-    private String username;
-    private String password;
-    private String phone;
-    private String sex;
-    private String idNumber;    // 身份证
-    private Integer status;
+    private Long categoryId;    // 分类Id
+    private BigDecimal price;
+    private String code;
+    private String image;
+    private String description;
+    private Integer status;     // 0停售，1在售
+    private Integer sort;
+    private Integer isDeleted;
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
     @TableField(fill = FieldFill.INSERT_UPDATE)
@@ -27,3 +30,28 @@ public class Employee implements Serializable {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private Long updateUser;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

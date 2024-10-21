@@ -2,6 +2,7 @@ package com.zuoxi.takeout.filter;
 
 
 import com.alibaba.fastjson.JSON;
+import com.zuoxi.takeout.common.BaseContext;
 import com.zuoxi.takeout.common.R;
 import org.springframework.util.AntPathMatcher;
 
@@ -42,6 +43,7 @@ public class LoginCheckFilter implements Filter {
         // d.判断登录状态，如果已登录，则直接放行
         Object employee = request.getSession().getAttribute("employee");
         if (employee != null) {
+            BaseContext.setCurrentUid((Long) employee);
             filterChain.doFilter(request, response);
             return;
         }
