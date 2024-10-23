@@ -13,6 +13,11 @@ import java.sql.SQLIntegrityConstraintViolationException;
 @ResponseBody
 @Slf4j
 public class GlobalExceptionHandler {
+    /**
+     * 处理重名异常
+     * @param ex
+     * @return
+     */
     @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
     public R<String> exceptionHandle(SQLIntegrityConstraintViolationException ex) {
         String info = ex.getMessage();
@@ -27,6 +32,11 @@ public class GlobalExceptionHandler {
         return R.error("未知错误");
     }
 
+    /**
+     * 处理自定义异常
+     * @param ex
+     * @return
+     */
     @ExceptionHandler(CustomException.class)
     public R<String> exceptionHandle(CustomException ex) {
         return R.error(ex.getMessage());
