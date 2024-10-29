@@ -55,13 +55,12 @@ public class DishController {
         dishWrapper.eq(name != null, Dish::getName, name);
         dishWrapper.orderByDesc(Dish::getUpdateTime);
 
-        Page<Dish> list = dishService.page(pageInfo, dishWrapper);
-        log.info("菜品分页：{}", list.toString());
+        dishService.page(pageInfo, dishWrapper);
         // 拷贝属性到dishDtoPage上，不包括records
         BeanUtils.copyProperties(pageInfo, dishDtoPage, "records");
 
-        List<Dish> records = list.getRecords();
-        List<DishDto> list1 =  records.stream().map(item -> {
+        List<Dish> records = pageInfo.getRecords();
+        List<DishDto> list =  records.stream().map(item -> {
             Long categoryId = item.getCategoryId();
             DishDto dishDto = new DishDto();
             // 将字段都拷到新的dishDto上
@@ -71,11 +70,10 @@ public class DishController {
             if (category != null) {
                 dishDto.setCategoryName(category.getName());
             }
-
             return dishDto;
         }).collect(Collectors.toList());
 
-        dishDtoPage.setRecords(list1);
+        dishDtoPage.setRecords(list);
 
         return R.success(dishDtoPage);
     }
@@ -103,10 +101,10 @@ public class DishController {
     public R<List<Dish>> list(Dish dish) {
         Long categoryId = dish.getCategoryId();
         LambdaQueryWrapper<Dish> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(categoryId != null, Dish::getCategoryId, categoryId);
-        // 在售菜品
+        wrapper.eq(Dish::getCategoryId, categoryId);
         wrapper.eq(Dish::getStatus, 1);
         wrapper.orderByAsc(Dish::getSort).orderByDesc(Dish::getUpdateTime);
+        // 查询对应的菜品， SQL: SELECT * FROM dish WHERE category_id = #{categoryId} AND status = 1 ORDER BY sort ASC,update_time DESC;
         List<Dish> list = dishService.list(wrapper);
         return R.success(list);
     }
