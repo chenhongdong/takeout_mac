@@ -6,7 +6,9 @@ import com.zuoxi.takeout.common.R;
 import com.zuoxi.takeout.dto.DishDto;
 import com.zuoxi.takeout.entity.Category;
 import com.zuoxi.takeout.entity.Dish;
+import com.zuoxi.takeout.entity.DishFlavor;
 import com.zuoxi.takeout.service.CategoryService;
+import com.zuoxi.takeout.service.DishFlavorService;
 import com.zuoxi.takeout.service.DishService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -25,6 +27,9 @@ public class DishController {
 
     @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+    private DishFlavorService dishFlavorService;
 
     /**
      * 新增菜品
@@ -98,7 +103,7 @@ public class DishController {
 
 
     @GetMapping("/list")
-    public R<List<Dish>> list(Dish dish) {
+    public R<List<DishDto>> list(Dish dish) {
         Long categoryId = dish.getCategoryId();
         LambdaQueryWrapper<Dish> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Dish::getCategoryId, categoryId);
@@ -106,7 +111,27 @@ public class DishController {
         wrapper.orderByAsc(Dish::getSort).orderByDesc(Dish::getUpdateTime);
         // 查询对应的菜品， SQL: SELECT * FROM dish WHERE category_id = #{categoryId} AND status = 1 ORDER BY sort ASC,update_time DESC;
         List<Dish> list = dishService.list(wrapper);
-        return R.success(list);
+
+        List<DishDto> dishDtoList = list.stream().map(item -> {
+            DishDto dishDto = new DishDto();
+            BeanUtils.copyProperties(item, dishDto);
+            Long categoryId1 = item.getCategoryId();
+            Category category = categoryService.getById(categoryId1);
+            if (category != null) {
+                String categoryName = category.getName();
+                dishDto.setCategoryName(categoryName);
+            }
+
+            Long dishId = item.getId();
+            LambdaQueryWrapper<DishFlavor> dishFlavorLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            dishFlavorLambdaQueryWrapper.eq(dishId != null, DishFlavor::getDishId, dishId);
+            List<DishFlavor> flavors = dishFlavorService.list(dishFlavorLambdaQueryWrapper);
+            dishDto.setFlavors(flavors);
+
+            return dishDto;
+        }).collect(Collectors.toList());
+
+        return R.success(dishDtoList);
     }
 }
 

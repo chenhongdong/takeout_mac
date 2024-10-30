@@ -1,10 +1,12 @@
 package com.zuoxi.takeout.entity;
 
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
+@TableName("user")
 public class User implements Serializable {
     private static final long serialVersionUid = 1L;
 

@@ -160,4 +160,21 @@ public class SetmealController {
         setmealService.updateWithDish2(setmealDto);
         return R.success("修改套餐成功");
     }
+
+
+    /**
+     * 套餐列表
+     * @param setmeal
+     * @return
+     */
+    @GetMapping("/list")
+    public R<List<Setmeal>> list(Setmeal setmeal) {
+        Long categoryId = setmeal.getCategoryId();
+        LambdaQueryWrapper<Setmeal> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Setmeal::getCategoryId, categoryId);
+
+        List<Setmeal> list = setmealService.list(wrapper);
+
+        return R.success(list);
+    }
 }

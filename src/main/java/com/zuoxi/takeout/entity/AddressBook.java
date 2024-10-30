@@ -9,13 +9,24 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("category")
-public class Category implements Serializable {
+@TableName("address_book")
+public class AddressBook implements Serializable {
     private static final long serialVersionUid = 1L;
     private Long id;
-    private Integer type;   // 1菜品分类，2套餐分类
-    private String name;
-    private Integer sort;
+    private Long userId;
+    private String consignee;
+    private String sex;
+    private String phone;
+    private String provinceCode;
+    private String provinceName;
+    private String cityCode;
+    private String cityName;
+    private String districtCode;
+    private String districtName;
+    private String detail;
+    private String label;
+    private Integer isDefault;
+    private Integer isDeleted;
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
     @TableField(fill = FieldFill.INSERT_UPDATE)

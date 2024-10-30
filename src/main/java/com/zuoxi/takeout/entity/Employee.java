@@ -2,12 +2,14 @@ package com.zuoxi.takeout.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
+@TableName("employee")
 public class Employee implements Serializable {
     private static final long serialVersionUid = 1L;
     private Long id;
