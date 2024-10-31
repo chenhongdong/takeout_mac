@@ -25,10 +25,11 @@ public class AddressBookController {
      * @return
      */
     @PostMapping
-    public R<AddressBook> save(@RequestBody AddressBook addressBook) {
-        addressBook.setUserId(BaseContext.getCurrentUid());
+    public R<String> save(@RequestBody AddressBook addressBook) {
+        Long currentUid = BaseContext.getCurrentUid();
+        addressBook.setUserId(currentUid);
         addressBookService.save(addressBook);
-        return R.success(addressBook);
+        return R.success("添加地址成功");
     }
 
 
@@ -38,18 +39,19 @@ public class AddressBookController {
      * @return
      */
     @PutMapping("/default")
-    public R<AddressBook> setDefault(@RequestBody AddressBook addressBook) {
-        LambdaUpdateWrapper<AddressBook> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(AddressBook::getUserId, BaseContext.getCurrentUid());
-        updateWrapper.set(AddressBook::getIsDefault, 0);
-        addressBookService.update(updateWrapper);
+    public R<String> setDefault(@RequestBody AddressBook addressBook) {
+        Long currentUid = BaseContext.getCurrentUid();
+        // 把所有地址都设置为非默认
+        LambdaUpdateWrapper<AddressBook> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(AddressBook::getUserId, currentUid);
+        wrapper.set(AddressBook::getIsDefault, 0);
+        addressBookService.update(wrapper);
 
+        // 设置当前地址为默认
         addressBook.setIsDefault(1);
         addressBookService.updateById(addressBook);
-
-        return R.success(addressBook);
+        return R.success("设置默认地址成功");
     }
-
 
     /**
      * 查询地址列表
@@ -57,11 +59,11 @@ public class AddressBookController {
      */
     @GetMapping("/list")
     public R<List<AddressBook>> list() {
+        Long currentUid = BaseContext.getCurrentUid();
         LambdaQueryWrapper<AddressBook> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(AddressBook::getUserId, BaseContext.getCurrentUid());
-        wrapper.orderByDesc(AddressBook::getUpdateTime);
+        wrapper.eq(AddressBook::getUserId, currentUid);
+        wrapper.orderByDesc(AddressBook::getCreateTime);
         List<AddressBook> list = addressBookService.list(wrapper);
-
         return R.success(list);
     }
 
@@ -72,17 +74,16 @@ public class AddressBookController {
      */
     @GetMapping("/default")
     public R<AddressBook> getDefault() {
-        // SQL: SELECT * FROM address_book WHERE user_id = ? AND is_default = 1;
+        Long currentUid = BaseContext.getCurrentUid();
         LambdaQueryWrapper<AddressBook> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(AddressBook::getUserId, BaseContext.getCurrentUid());
+        wrapper.eq(AddressBook::getUserId, currentUid);
         wrapper.eq(AddressBook::getIsDefault, 1);
-        AddressBook defaultAddress = addressBookService.getOne(wrapper);
-        if (defaultAddress == null) {
-            return R.error("没有查到默认地址信息");
+        AddressBook addressBook = addressBookService.getOne(wrapper);
+        if (addressBook == null) {
+            return R.error("目前还没有默认地址");
         }
-        return R.success(defaultAddress);
+        return R.success(addressBook);
     }
-
 
     /**
      * 根据id查询地址信息
@@ -91,14 +92,12 @@ public class AddressBookController {
      */
     @GetMapping("/{id}")
     public R<AddressBook> getById(@PathVariable Long id) {
-        // SQL: SELECT * FROM address_book WHERE id = ?;
         AddressBook addressBook = addressBookService.getById(id);
         if (addressBook == null) {
-            return R.error("没有对应地址信息");
+            return R.error("该地址信息不存在");
         }
         return R.success(addressBook);
     }
-
 
     /**
      * 更新地址信息
@@ -107,12 +106,9 @@ public class AddressBookController {
      */
     @PutMapping
     public R<String> update(@RequestBody AddressBook addressBook) {
-        // SQL: UPDATE address_book SET key=value WHERE id = ?;
         addressBookService.updateById(addressBook);
-
-        return R.success("地址更新成功");
+        return R.success("更新地址成功");
     }
-
 
     /**
      * 删除地址
@@ -120,7 +116,7 @@ public class AddressBookController {
      * @return
      */
     @DeleteMapping
-    public R<String> remove(Long ids) {
+    public R<String> delete(Long ids) {
         addressBookService.removeById(ids);
         return R.success("删除地址成功");
     }

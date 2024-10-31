@@ -99,6 +99,7 @@
   position: relative;
   display: flex;
   align-items: center;
+  font-size: 14rem;
 }
 
 #user .divLinks .divSplit {
