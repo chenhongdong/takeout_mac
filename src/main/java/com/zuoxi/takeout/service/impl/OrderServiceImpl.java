@@ -1,14 +1,13 @@
 package com.zuoxi.takeout.service.impl;
 
-import com.alibaba.druid.sql.ast.AutoIncrementType;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zuoxi.takeout.common.BaseContext;
-import com.zuoxi.takeout.controller.UserController;
 import com.zuoxi.takeout.entity.*;
 import com.zuoxi.takeout.mapper.OrderMapper;
 import com.zuoxi.takeout.service.*;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,13 +67,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
 
 
         // 提交的参数只有addressBookId、payMethods、remark，所以剩下缺的字段需要都设置上
-        orders.setNumber(orderId + "");
-        orders.setStatus(2);
-        orders.setUserId(currentUid);
-        orders.setOrderTime(LocalDateTime.now());
-        orders.setCheckoutTime(LocalDateTime.now());
-        orders.setAmount(new BigDecimal(amount.get()));
-        orders.setPhone(addressBook.getPhone());
+//        fillOrder(orders, currentUid, addressBook, orderId, amount);
         orders.setUserName(user.getName());
         orders.setConsignee(addressBook.getConsignee());
         String address = (addressBook.getProvinceName() != null ? addressBook.getProvinceName() : "") + (addressBook.getCityName() != null ? addressBook.getCityName() : "") + (addressBook.getDistrictName() != null ? addressBook.getDistrictName() : "") + (addressBook.getDetail() != null ? addressBook.getDetail() : "");
@@ -87,5 +80,60 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
 
         // 清空购物车
         shoppingCartService.remove(wrapper);
+    }
+
+    @Override
+    @Transactional
+    public void submitOrder(Orders orders) {
+        // 根据用户id获取购物车数据
+        Long uid = BaseContext.getCurrentUid();
+        LambdaQueryWrapper<ShoppingCart> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ShoppingCart::getUserId, uid);
+        List<ShoppingCart> shoppingCartList = shoppingCartService.list(wrapper);
+
+        User user = userService.getById(uid);
+        AddressBook addressBook = addressBookService.getById(orders.getAddressBookId());
+
+        long orderId = IdWorker.getId();
+        // 总金额
+        AtomicInteger amount = new AtomicInteger(0);
+
+        List<OrderDetail> orderDetails = shoppingCartList.stream().map(item -> {
+            OrderDetail orderDetail = new OrderDetail();
+            String[] ignoreProps = {"user_id", "create_time"};
+            BeanUtils.copyProperties(item, orderDetail, ignoreProps);
+            orderDetail.setOrderId(orderId);
+            // 累加计算总价
+            amount.addAndGet(item.getAmount().multiply(new BigDecimal(item.getNumber())).intValue());
+            return orderDetail;
+        }).toList();
+
+        // 添加一条数据到订单表orders
+        // 填充订单其余字段
+        fillOrder(orders, uid, user, addressBook, orderId, amount);
+        this.save(orders);
+
+        // 添加多条数据到订单详情表order_detail
+        orderDetailService.saveBatch(orderDetails);
+        // 清空购物车
+        shoppingCartService.remove(wrapper);
+    }
+
+    private void fillOrder(Orders orders, Long uid, User user, AddressBook addressBook, long orderId, AtomicInteger amount) {
+        orders.setId(orderId);
+        orders.setNumber(orderId + "");
+        orders.setStatus(2);
+        orders.setUserId(uid);
+        orders.setOrderTime(LocalDateTime.now());
+        orders.setCheckoutTime(LocalDateTime.now());
+        orders.setAmount(new BigDecimal(amount.get()));
+        orders.setPhone(addressBook.getPhone());
+        String address = (addressBook.getProvinceName() != null ? addressBook.getProvinceName() : "")
+                + (addressBook.getCityName() != null ? addressBook.getCityName() : "")
+                + (addressBook.getDistrictName() != null ? addressBook.getDistrictName() : "")
+                + (addressBook.getDetail() != null ? addressBook.getDetail() : "");
+        orders.setAddress(address);
+        orders.setUserName(user.getName());
+        orders.setConsignee(addressBook.getConsignee());
     }
 }

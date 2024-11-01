@@ -18,7 +18,7 @@ public class Orders implements Serializable {
     private Long addressBookId;
     private LocalDateTime orderTime;    // 下单时间
     private LocalDateTime checkoutTime;  // 支付时间
-    private Integer payMethods;  // 支付方式 1微信，2支付宝
+    private Integer payMethod;  // 支付方式 1微信，2支付宝
     private BigDecimal amount;  // 总金额
     private String remark;  // 备注信息
     private String phone;

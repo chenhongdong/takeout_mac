@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=no,minimal-ui">
+        <title>菩提阁</title>
+        <link rel="icon" href="./../images/favico.ico">
+        <!--不同屏幕尺寸根字体设置-->
+        <script src="./../js/base.js"></script>
+        <!--element-ui的样式-->
+        <link rel="stylesheet" href="../../backend/plugins/element-ui/index.css" />
+        <!-- 引入样式  -->
+        <link rel="stylesheet" href="../styles/index.css" />
+        <!--引入vant样式-->
+        <link rel="stylesheet" href="../styles/vant.min.css"/>
+        <!--本页面内容的样式-->
+        <link rel="stylesheet" href="./../styles/order.css" />
+    </head>
+    <body>
+        <div id="order" class="app">
+            <div class="divHead">
+                <div class="divTitle">
+                    <i class="el-icon-arrow-left" @click="goBack"></i>菩提阁
+                </div>
+            </div>
+            <div class="divBody" v-if="orderList.length > 0">
+
+            </div>
+
+        </div>
+        <!-- 开发环境版本，包含了有帮助的命令行警告 -->
+        <script src="../../backend/plugins/vue/vue.js"></script>
+        <!-- 引入组件库 -->
+        <script src="../../backend/plugins/element-ui/index.js"></script>
+        <!-- 引入vant组件 -->
+        <script src="./../js/vant.min.js"></script>    
+        <!-- 引入axios -->
+        <script src="../../backend/plugins/axios/axios.min.js"></script>
+        <script src="./../js/request.js"></script>
+        <script src="./../js/common.js"></script>
+        <script src="./../api/order.js"></script>
+        <script>
+
+
+
+        new Vue({
+            el:"#order",
+            data(){
+                return {
+                    paging:{
+                        page:1,
+                        pageSize:5
+                    },
+                    orderList:[],
+                    loading:false,
+                    finished:false
+                }
+            },
+            computed:{},
+            created(){
+                this.initData()
+            },
+            mounted(){
+                console.log('订单详情页： ', location.search)
+                console.log(parseUrl(location.href))
+            },
+            methods:{
+                getDetailData() {
+
+                }
+            }
+        })
+        </script>
+    </body>
+</html>

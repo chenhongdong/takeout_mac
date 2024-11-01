@@ -22,5 +22,4 @@ public class ShoppingCart implements Serializable {
     private Integer number;
     private BigDecimal amount;
     private LocalDateTime createTime;
-    private LocalDateTime updateTime;
 }

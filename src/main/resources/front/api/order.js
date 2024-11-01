@@ -32,3 +32,12 @@ function orderAgainApi(data) {
       data
   })
 }
+
+// 订单详情
+function orderDetailApi(data) {
+    return $axios({
+        'url': '/orderDetail',
+        'method': 'get',
+        data
+    })
+}

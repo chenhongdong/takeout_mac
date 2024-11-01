@@ -37,7 +37,7 @@
                             <span>{{getStatus(order.status)}}</span>
                             <!-- <span>正在派送</span> -->
                         </div>
-                        <div class="dishList">
+                        <div class="dishList" @click="goDetail(order.id)">
                             <div v-for="(item,index) in order.orderDetails" :key="index" class="item">
                                 <span>{{item.name}}</span>
                                 <span>x{{item.number}}</span>
@@ -89,6 +89,12 @@
             },
             mounted(){},
             methods:{
+                goDetail(id) {
+                    console.log('跳详情的id:' + id);
+                    window.requestAnimationFrame(()=>{
+                        window.location.href = `/front/page/order-detail.html?orderId=${id}`
+                    })
+                },
                 goBack(){
                     const url = document.referrer
                     //表示是从订单页面跳转过来的
