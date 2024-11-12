@@ -9,6 +9,7 @@ import com.zuoxi.takeout.utils.SMSUtils;
 import com.zuoxi.takeout.utils.ValidateCodeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpSession;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/user")
@@ -24,6 +26,10 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
 
 
     /**
@@ -42,7 +48,9 @@ public class UserController {
             // 调用阿里云提供的短信服务Api完成发送短信
 //            SMSUtils.sendMessage("外卖", "", phone, code);
             // 需要将生成的验证码保存到Session中
-            session.setAttribute(phone, code);
+            // session.setAttribute(phone, code);
+            // 将验证码保存到redis中，5分钟后失效
+            redisTemplate.opsForValue().set(phone, code, 5, TimeUnit.MINUTES);
         }
 
         return R.success("验证码发送成功");
@@ -61,7 +69,7 @@ public class UserController {
         String phone = map.get("phone").toString();
         String code = map.get("code").toString();
         // 从session里取出存入的code
-        Object codeInSession = session.getAttribute(phone);
+        Object codeInSession = redisTemplate.opsForValue().get(phone);
 
         if (codeInSession != null && codeInSession.equals(code)) {
             LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
@@ -74,6 +82,8 @@ public class UserController {
                 userService.save(user);
             }
             session.setAttribute("user", user.getId());
+
+            redisTemplate.delete(phone);
             return R.success(user);
         }
 

@@ -59,15 +59,15 @@
             },
             computed:{},
             created(){
-                this.initData()
+                const { orderId } = parseUrl(location.href)
+                console.log(orderId)
+                this.getDetailData(orderId)
             },
-            mounted(){
-                console.log('订单详情页： ', location.search)
-                console.log(parseUrl(location.href))
-            },
+            mounted(){},
             methods:{
-                getDetailData() {
-
+                async getDetailData(orderId) {
+                    const res = await orderDetailByIdApi(orderId)
+                    console.log("获取详情页数据：", res)
                 }
             }
         })

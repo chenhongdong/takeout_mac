@@ -13,6 +13,8 @@ import com.zuoxi.takeout.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,6 +36,7 @@ public class SetmealController {
      * @return
      */
     @PostMapping
+    @CacheEvict(value = "setmealCache", allEntries = true)
     public R<String> save(@RequestBody SetmealDto setmealDto) {
 //        setmealService.saveWithDish(setmealDto);
         setmealService.addWithDish(setmealDto);
@@ -121,6 +124,7 @@ public class SetmealController {
      * @return
      */
     @DeleteMapping
+    @CacheEvict(value = "setmealCache", allEntries = true)  // 清除该分类下的所有缓存数据
     public R<String> delete(@RequestParam List<Long> ids) {  // 多个查询参数时ids=11,22,33，@RequestParam是必写的
 //        setmealService.removeWithDish(ids);
         setmealService.deleteWithDish(ids);
@@ -168,10 +172,12 @@ public class SetmealController {
      * @return
      */
     @GetMapping("/list")
+    @Cacheable(value = "setmealCache", key = "#setmeal.categoryId + '_' + #setmeal.status")
     public R<List<Setmeal>> list(Setmeal setmeal) {
         Long categoryId = setmeal.getCategoryId();
         LambdaQueryWrapper<Setmeal> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Setmeal::getCategoryId, categoryId);
+        wrapper.orderByDesc(Setmeal::getUpdateTime);
 
         List<Setmeal> list = setmealService.list(wrapper);
 

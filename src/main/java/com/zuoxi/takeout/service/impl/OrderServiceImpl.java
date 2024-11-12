@@ -85,55 +85,54 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
     @Override
     @Transactional
     public void submitOrder(Orders orders) {
-        // 根据用户id获取购物车数据
+        // 通过用户id获取购物车数据
         Long uid = BaseContext.getCurrentUid();
-        LambdaQueryWrapper<ShoppingCart> wrapper = new LambdaQueryWrapper<>();
+        LambdaQueryWrapper<ShoppingCart> wrapper  = new LambdaQueryWrapper<>();
         wrapper.eq(ShoppingCart::getUserId, uid);
-        List<ShoppingCart> shoppingCartList = shoppingCartService.list(wrapper);
-
+        wrapper.orderByDesc(ShoppingCart::getCreateTime);
+        List<ShoppingCart> shoppingCarts = shoppingCartService.list(wrapper);
+        // 获取用户数据和地址数据
         User user = userService.getById(uid);
         AddressBook addressBook = addressBookService.getById(orders.getAddressBookId());
 
+        // 添加购物车数据等到订单详情表
         long orderId = IdWorker.getId();
-        // 总金额
         AtomicInteger amount = new AtomicInteger(0);
 
-        List<OrderDetail> orderDetails = shoppingCartList.stream().map(item -> {
+        List<OrderDetail> orderDetails = shoppingCarts.stream().map(item -> {
             OrderDetail orderDetail = new OrderDetail();
-            String[] ignoreProps = {"user_id", "create_time"};
-            BeanUtils.copyProperties(item, orderDetail, ignoreProps);
+            String[] ignore = {"user_id", "create_time"};
+            BeanUtils.copyProperties(item, orderDetail, ignore);
             orderDetail.setOrderId(orderId);
-            // 累加计算总价
             amount.addAndGet(item.getAmount().multiply(new BigDecimal(item.getNumber())).intValue());
             return orderDetail;
-        }).toList();
+        }).collect(Collectors.toList());
 
-        // 添加一条数据到订单表orders
-        // 填充订单其余字段
-        fillOrder(orders, uid, user, addressBook, orderId, amount);
-        this.save(orders);
-
-        // 添加多条数据到订单详情表order_detail
         orderDetailService.saveBatch(orderDetails);
-        // 清空购物车
-        shoppingCartService.remove(wrapper);
-    }
 
-    private void fillOrder(Orders orders, Long uid, User user, AddressBook addressBook, long orderId, AtomicInteger amount) {
+        // 添加一条数据到订单表
         orders.setId(orderId);
         orders.setNumber(orderId + "");
         orders.setStatus(2);
         orders.setUserId(uid);
         orders.setOrderTime(LocalDateTime.now());
         orders.setCheckoutTime(LocalDateTime.now());
+        orders.setPayMethod(1);
         orders.setAmount(new BigDecimal(amount.get()));
-        orders.setPhone(addressBook.getPhone());
-        String address = (addressBook.getProvinceName() != null ? addressBook.getProvinceName() : "")
-                + (addressBook.getCityName() != null ? addressBook.getCityName() : "")
-                + (addressBook.getDistrictName() != null ? addressBook.getDistrictName() : "")
-                + (addressBook.getDetail() != null ? addressBook.getDetail() : "");
-        orders.setAddress(address);
         orders.setUserName(user.getName());
+        orders.setPhone(addressBook.getPhone());
         orders.setConsignee(addressBook.getConsignee());
+        orders.setAddress(
+            (addressBook.getProvinceName() != null ? addressBook.getProvinceName() : "") +
+            (addressBook.getCityName() != null ? addressBook.getCityName() : "") +
+            (addressBook.getDistrictName() != null ? addressBook.getDistrictName() : "") +
+            (addressBook.getDetail() != null ? addressBook.getDetail() : "")
+        );
+        this.save(orders);
+
+        // 清空购物车
+        shoppingCartService.remove(wrapper);
     }
+
+
 }

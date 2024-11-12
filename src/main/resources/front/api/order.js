@@ -34,10 +34,9 @@ function orderAgainApi(data) {
 }
 
 // 订单详情
-function orderDetailApi(data) {
+function orderDetailByIdApi(id) {
     return $axios({
-        'url': '/orderDetail',
-        'method': 'get',
-        data
+        'url': `/orderDetail/${id}`,
+        'method': 'get'
     })
 }

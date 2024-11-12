@@ -2,8 +2,10 @@ package com.zuoxi.takeout.common;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
-public class R<T> {
+public class R<T> implements Serializable {
     private Integer code;   // 编码，1成功，其他失败
 
     private String msg; // 信息
