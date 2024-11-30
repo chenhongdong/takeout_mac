@@ -32,7 +32,11 @@ public class LoginCheckFilter implements Filter {
                 "/backend/**",
                 "/front/**",
                 "/user/login",
-                "/user/sendMsg"
+                "/user/sendMsg",
+                "/doc.html",
+                "/webjars/**",
+                "/swagger-resources",
+                "/v2/api-docs"
         };
         // c.如果不需要处理，则直接放行
         boolean isCheck = check(urls, requestUri);

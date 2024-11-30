@@ -1,15 +1,21 @@
 package com.zuoxi.takeout.common;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
+@ApiModel("返回结果")
 public class R<T> implements Serializable {
+    @ApiModelProperty("编码")
     private Integer code;   // 编码，1成功，其他失败
 
+    @ApiModelProperty("错误信息")
     private String msg; // 信息
 
+    @ApiModelProperty("数据")
     private T data;    // 数据
 
     /**
